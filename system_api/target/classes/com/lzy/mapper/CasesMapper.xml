@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lzy.mapper.CasesMapper">
+	<!-- 实体映射-->
+	<resultMap id="base_result_map" type="com.lzy.entity.po.Cases">
+		<!--主键ID-->
+		<id column="id" property="id"/>
+		<!--关联多个dignosisReport（;分隔）-->
+		<result column="dignosis_reports" property="dignosisReports"/>
+		<!--治疗方案id-->
+		<result column="treatment_plan_id" property="treatmentPlanId"/>
+		<!--关联医院患者表-->
+		<result column="patient_id" property="patientId"/>
+		<!--症状描述（JSON格式，如视力模糊、眼痛等）-->
+		<result column="symptoms" property="symptoms"/>
+		<!--诊断方法（如眼底检查、眼压测量等）-->
+		<result column="diagnosis_method" property="diagnosisMethod"/>
+		<!--恢复时长（单位：天）-->
+		<result column="recovery_time" property="recoveryTime"/>
+		<!--记录创建时间-->
+		<result column="created_time" property="createdTime"/>
+		<!--病人名称-->
+		<result column="patient_name" property="patientName"/>
+		<!--病人身份证号-->
+		<result column="id_card" property="idCard"/>
+		<!--状态: confirmed/archived-->
+		<result column="status" property="status"/>
+	</resultMap>
+
+	<!-- 通用查询结果列 -->
+	<sql id="base_column_list">
+		id,dignosis_reports,treatment_plan_id,patient_id,symptoms,diagnosis_method,recovery_time,created_time,patient_name,id_card,status
+	</sql>
+
+	<!-- 基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test=" query.id != null">
+			and id= #{query.id}
+		</if>
+		<if test=" query.dignosisReports != null and query.dignosisReports!= ''">
+			and dignosis_reports= #{query.dignosisReports}
+		</if>
+		<if test=" query.treatmentPlanId != null">
+			and treatment_plan_id= #{query.treatmentPlanId}
+		</if>
+		<if test=" query.patientId != null">
+			and patient_id= #{query.patientId}
+		</if>
+		<if test=" query.symptoms != null and query.symptoms!= ''">
+			and symptoms= #{query.symptoms}
+		</if>
+		<if test=" query.diagnosisMethod != null and query.diagnosisMethod!= ''">
+			and diagnosis_method= #{query.diagnosisMethod}
+		</if>
+		<if test=" query.recoveryTime != null">
+			and recovery_time= #{query.recoveryTime}
+		</if>
+		<if test=" query.createdTime != null">
+			and created_time= #{query.createdTime}
+		</if>
+		<if test=" query.patientName != null and query.patientName!= ''">
+			and patient_name= #{query.patientName}
+		</if>
+		<if test=" query.idCard != null and query.idCard!= ''">
+			and id_card= #{query.idCard}
+		</if>
+		<if test=" query.status != null and query.status!= ''">
+			and status= #{query.status}
+		</if>
+	</sql>
+
+	<!-- 扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+		<if test=" query.dignosisReportsFuzzy != null and query.dignosisReportsFuzzy!= null ">
+			and dignosis_reports like concat('%', #{query.dignosisReportsFuzzy}, '%')
+		</if>
+		<if test=" query.symptomsFuzzy != null and query.symptomsFuzzy!= null ">
+			and symptoms like concat('%', #{query.symptomsFuzzy}, '%')
+		</if>
+		<if test=" query.diagnosisMethodFuzzy != null and query.diagnosisMethodFuzzy!= null ">
+			and diagnosis_method like concat('%', #{query.diagnosisMethodFuzzy}, '%')
+		</if>
+		<if test=" query.recoveryTimeStart != null and query.recoveryTimeStart!= null ">
+			<![CDATA[ and recovery_time >= str_to_date(#{query.recoveryTimeStart}, '%Y-%m-%d') ]]>
+		</if>
+		<if test=" query.recoveryTimeEnd != null and query.recoveryTimeEnd!= null ">
+			<![CDATA[ and recovery_time < date_sub(str_to_date(#{query.recoveryTimeEnd}, '%Y-%m-%d'), interval -1 day) ]]>
+		</if>
+		<if test=" query.createdTimeStart != null and query.createdTimeStart!= null ">
+			<![CDATA[ and created_time >= str_to_date(#{query.createdTimeStart}, '%Y-%m-%d') ]]>
+		</if>
+		<if test=" query.createdTimeEnd != null and query.createdTimeEnd!= null ">
+			<![CDATA[ and created_time < date_sub(str_to_date(#{query.createdTimeEnd}, '%Y-%m-%d'), interval -1 day) ]]>
+		</if>
+		<if test=" query.patientNameFuzzy != null and query.patientNameFuzzy!= null ">
+			and patient_name like concat('%', #{query.patientNameFuzzy}, '%')
+		</if>
+		<if test=" query.idCardFuzzy != null and query.idCardFuzzy!= null ">
+			and id_card like concat('%', #{query.idCardFuzzy}, '%')
+		</if>
+		<if test=" query.statusFuzzy != null and query.statusFuzzy!= null ">
+			and status like concat('%', #{query.statusFuzzy}, '%')
+		</if>
+	</sql>
+
+	<!-- 通用查询条件 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+
+	<!-- 查询列表 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT 
+		<include refid="base_column_list"/>
+			FROM cases
+		<include refid="query_condition"/>
+		<if test="query.orderBy != null">
+			order by ${query.orderBy}
+		</if>
+		<if test="query.simplePage != null">
+			limit ${query.simplePage.start}, ${query.simplePage.end}
+		</if>
+	</select>
+
+	<!-- 查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM cases
+		<include refid="query_condition"/>
+	</select>
+
+	<!-- 单条插入 (匹配有值的字段) -->
+	<insert id="insert" parameterType="com.lzy.entity.po.Cases">
+		<selectKey keyProperty="bean.id" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO cases
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.dignosisReports != null">
+				dignosis_reports,
+			</if>
+			<if test="bean.treatmentPlanId != null">
+				treatment_plan_id,
+			</if>
+			<if test="bean.patientId != null">
+				patient_id,
+			</if>
+			<if test="bean.symptoms != null">
+				symptoms,
+			</if>
+			<if test="bean.diagnosisMethod != null">
+				diagnosis_method,
+			</if>
+			<if test="bean.recoveryTime != null">
+				recovery_time,
+			</if>
+			<if test="bean.createdTime != null">
+				created_time,
+			</if>
+			<if test="bean.patientName != null">
+				patient_name,
+			</if>
+			<if test="bean.idCard != null">
+				id_card,
+			</if>
+			<if test="bean.status != null">
+				status,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.dignosisReports != null">
+				#{bean.dignosisReports},
+			</if>
+			<if test="bean.treatmentPlanId != null">
+				#{bean.treatmentPlanId},
+			</if>
+			<if test="bean.patientId != null">
+				#{bean.patientId},
+			</if>
+			<if test="bean.symptoms != null">
+				#{bean.symptoms},
+			</if>
+			<if test="bean.diagnosisMethod != null">
+				#{bean.diagnosisMethod},
+			</if>
+			<if test="bean.recoveryTime != null">
+				#{bean.recoveryTime},
+			</if>
+			<if test="bean.createdTime != null">
+				#{bean.createdTime},
+			</if>
+			<if test="bean.patientName != null">
+				#{bean.patientName},
+			</if>
+			<if test="bean.idCard != null">
+				#{bean.idCard},
+			</if>
+			<if test="bean.status != null">
+				#{bean.status},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 插入或者更新（匹配有值的字段） -->
+	<insert id="insertOrUpdate" parameterType="com.lzy.entity.po.Cases">
+		INSERT INTO cases
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.dignosisReports != null">
+				dignosis_reports,
+			</if>
+			<if test="bean.treatmentPlanId != null">
+				treatment_plan_id,
+			</if>
+			<if test="bean.patientId != null">
+				patient_id,
+			</if>
+			<if test="bean.symptoms != null">
+				symptoms,
+			</if>
+			<if test="bean.diagnosisMethod != null">
+				diagnosis_method,
+			</if>
+			<if test="bean.recoveryTime != null">
+				recovery_time,
+			</if>
+			<if test="bean.createdTime != null">
+				created_time,
+			</if>
+			<if test="bean.patientName != null">
+				patient_name,
+			</if>
+			<if test="bean.idCard != null">
+				id_card,
+			</if>
+			<if test="bean.status != null">
+				status,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.dignosisReports != null">
+				#{bean.dignosisReports},
+			</if>
+			<if test="bean.treatmentPlanId != null">
+				#{bean.treatmentPlanId},
+			</if>
+			<if test="bean.patientId != null">
+				#{bean.patientId},
+			</if>
+			<if test="bean.symptoms != null">
+				#{bean.symptoms},
+			</if>
+			<if test="bean.diagnosisMethod != null">
+				#{bean.diagnosisMethod},
+			</if>
+			<if test="bean.recoveryTime != null">
+				#{bean.recoveryTime},
+			</if>
+			<if test="bean.createdTime != null">
+				#{bean.createdTime},
+			</if>
+			<if test="bean.patientName != null">
+				#{bean.patientName},
+			</if>
+			<if test="bean.idCard != null">
+				#{bean.idCard},
+			</if>
+			<if test="bean.status != null">
+				#{bean.status},
+			</if>
+		</trim>
+		ON DUPLICATE KEY UPDATE
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.dignosisReports != null">
+				dignosis_reports = VALUES(dignosis_reports),
+			</if>
+			<if test="bean.treatmentPlanId != null">
+				treatment_plan_id = VALUES(treatment_plan_id),
+			</if>
+			<if test="bean.patientId != null">
+				patient_id = VALUES(patient_id),
+			</if>
+			<if test="bean.symptoms != null">
+				symptoms = VALUES(symptoms),
+			</if>
+			<if test="bean.diagnosisMethod != null">
+				diagnosis_method = VALUES(diagnosis_method),
+			</if>
+			<if test="bean.recoveryTime != null">
+				recovery_time = VALUES(recovery_time),
+			</if>
+			<if test="bean.createdTime != null">
+				created_time = VALUES(created_time),
+			</if>
+			<if test="bean.patientName != null">
+				patient_name = VALUES(patient_name),
+			</if>
+			<if test="bean.idCard != null">
+				id_card = VALUES(id_card),
+			</if>
+			<if test="bean.status != null">
+				status = VALUES(status),
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 添加（批量添加） -->
+	<insert id="insertBatch" parameterType="com.lzy.entity.po.Cases" >
+		INSERT INTO cases(dignosis_reports, treatment_plan_id, patient_id, symptoms, diagnosis_method, recovery_time, created_time, patient_name, id_card, status) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.dignosisReports}, #{item.treatmentPlanId}, #{item.patientId}, #{item.symptoms}, #{item.diagnosisMethod}, #{item.recoveryTime}, #{item.createdTime}, #{item.patientName}, #{item.idCard}, #{item.status})
+		</foreach>
+	</insert>
+
+	<!-- 批量新增修改（批量插入） -->
+	<insert id="insertOrUpdateBatch" parameterType="com.lzy.entity.po.Cases" >
+		INSERT INTO cases(dignosis_reports, treatment_plan_id, patient_id, symptoms, diagnosis_method, recovery_time, created_time, patient_name, id_card, status) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.dignosisReports}, #{item.treatmentPlanId}, #{item.patientId}, #{item.symptoms}, #{item.diagnosisMethod}, #{item.recoveryTime}, #{item.createdTime}, #{item.patientName}, #{item.idCard}, #{item.status})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		id =  VALUES(id),
+		dignosis_reports =  VALUES(dignosis_reports),
+		treatment_plan_id =  VALUES(treatment_plan_id),
+		patient_id =  VALUES(patient_id),
+		symptoms =  VALUES(symptoms),
+		diagnosis_method =  VALUES(diagnosis_method),
+		recovery_time =  VALUES(recovery_time),
+		created_time =  VALUES(created_time),
+		patient_name =  VALUES(patient_name),
+		id_card =  VALUES(id_card),
+		status =  VALUES(status)
+	</insert>
+
+	<!-- 根据 Id 查询 -->
+	<select id="selectById" resultMap="base_result_map">
+		select
+		<include refid="base_column_list"/> 
+		from cases where id =#{id}
+	</select>
+
+	<!-- 根据 Id 更新 -->
+	<update id="updateById" parameterType="com.lzy.entity.po.Cases">
+		update cases
+		<set>
+			<if test="bean.id != null">
+				id= #{bean.id},
+			</if>
+			<if test="bean.dignosisReports != null">
+				dignosis_reports= #{bean.dignosisReports},
+			</if>
+			<if test="bean.treatmentPlanId != null">
+				treatment_plan_id= #{bean.treatmentPlanId},
+			</if>
+			<if test="bean.patientId != null">
+				patient_id= #{bean.patientId},
+			</if>
+			<if test="bean.symptoms != null">
+				symptoms= #{bean.symptoms},
+			</if>
+			<if test="bean.diagnosisMethod != null">
+				diagnosis_method= #{bean.diagnosisMethod},
+			</if>
+			<if test="bean.recoveryTime != null">
+				recovery_time= #{bean.recoveryTime},
+			</if>
+			<if test="bean.createdTime != null">
+				created_time= #{bean.createdTime},
+			</if>
+			<if test="bean.patientName != null">
+				patient_name= #{bean.patientName},
+			</if>
+			<if test="bean.idCard != null">
+				id_card= #{bean.idCard},
+			</if>
+			<if test="bean.status != null">
+				status= #{bean.status},
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+
+	<!-- 根据 Id 删除 -->
+	<delete id="deleteById">
+		delete from cases where id =#{id}
+	</delete>
+
+</mapper>

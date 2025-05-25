@@ -1,0 +1,18 @@
+package com.ljw.entity.vo;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * DATE: 2025/3/23
+ * Author: lizhiyu
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class AgeRangeCountVO {
+    private String ageRange;
+    private Integer count;
+    private String percentage;
+}

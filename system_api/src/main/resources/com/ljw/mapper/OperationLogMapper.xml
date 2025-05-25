@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ljw.mapper.OperationLogMapper">
+	<!-- 实体映射-->
+	<resultMap id="base_result_map" type="com.ljw.entity.po.OperationLog">
+		<!--主键ID-->
+		<id column="id" property="id"/>
+		<!--操作用户ID-->
+		<result column="user_id" property="userId"/>
+		<!--操作用户角色（admin管理员 doctor医生 patient病人-->
+		<result column="role" property="role"/>
+		<!--业务模块标题-->
+		<result column="title" property="title"/>
+		<!--业务类型-->
+		<result column="business_type" property="businessType"/>
+		<!--请求方法-->
+		<result column="method" property="method"/>
+		<!--请求路径-->
+		<result column="request_url" property="requestUrl"/>
+		<!--请求者ip-->
+		<result column="oper_ip" property="operIp"/>
+		<!--操作状态（0正常 1异常）-->
+		<result column="status" property="status"/>
+		<!--错误信息-->
+		<result column="error_msg" property="errorMsg"/>
+		<!--操作时间-->
+		<result column="create_time" property="createTime"/>
+		<!--消耗时间-->
+		<result column="cost_time" property="costTime"/>
+	</resultMap>
+
+	<!-- 通用查询结果列 -->
+	<sql id="base_column_list">
+		id,user_id,role,title,business_type,method,request_url,oper_ip,status,error_msg,create_time,cost_time
+	</sql>
+
+	<!-- 基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test=" query.id != null">
+			and id= #{query.id}
+		</if>
+		<if test=" query.userId != null">
+			and user_id= #{query.userId}
+		</if>
+		<if test=" query.role != null and query.role!= ''">
+			and role= #{query.role}
+		</if>
+		<if test=" query.title != null and query.title!= ''">
+			and title= #{query.title}
+		</if>
+		<if test=" query.businessType != null and query.businessType!= ''">
+			and business_type= #{query.businessType}
+		</if>
+		<if test=" query.method != null and query.method!= ''">
+			and method= #{query.method}
+		</if>
+		<if test=" query.requestUrl != null and query.requestUrl!= ''">
+			and request_url= #{query.requestUrl}
+		</if>
+		<if test=" query.operIp != null and query.operIp!= ''">
+			and oper_ip= #{query.operIp}
+		</if>
+		<if test=" query.status != null">
+			and status= #{query.status}
+		</if>
+		<if test=" query.errorMsg != null and query.errorMsg!= ''">
+			and error_msg= #{query.errorMsg}
+		</if>
+		<if test=" query.createTime != null">
+			and create_time= #{query.createTime}
+		</if>
+		<if test=" query.costTime != null">
+			and cost_time > #{query.costTime}
+		</if>
+	</sql>
+
+	<!-- 扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+		<if test=" query.roleFuzzy != null and query.roleFuzzy!= null ">
+			and role like concat('%', #{query.roleFuzzy}, '%')
+		</if>
+		<if test=" query.titleFuzzy != null and query.titleFuzzy!= null ">
+			and title like concat('%', #{query.titleFuzzy}, '%')
+		</if>
+		<if test=" query.businessTypeFuzzy != null and query.businessTypeFuzzy!= null ">
+			and business_type like concat('%', #{query.businessTypeFuzzy}, '%')
+		</if>
+		<if test=" query.methodFuzzy != null and query.methodFuzzy!= null ">
+			and method like concat('%', #{query.methodFuzzy}, '%')
+		</if>
+		<if test=" query.requestUrlFuzzy != null and query.requestUrlFuzzy!= null ">
+			and request_url like concat('%', #{query.requestUrlFuzzy}, '%')
+		</if>
+		<if test=" query.operIpFuzzy != null and query.operIpFuzzy!= null ">
+			and oper_ip like concat('%', #{query.operIpFuzzy}, '%')
+		</if>
+		<if test=" query.errorMsgFuzzy != null and query.errorMsgFuzzy!= null ">
+			and error_msg like concat('%', #{query.errorMsgFuzzy}, '%')
+		</if>
+		<if test=" query.createTimeStart != null and query.createTimeStart!= null ">
+			<![CDATA[ and create_time >= str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
+		</if>
+		<if test=" query.createTimeEnd != null and query.createTimeEnd!= null ">
+			<![CDATA[ and create_time < date_sub(str_to_date(#{query.createTimeEnd}, '%Y-%m-%d'), interval -1 day) ]]>
+		</if>
+	</sql>
+
+	<!-- 通用查询条件 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+
+	<!-- 查询列表 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT 
+		<include refid="base_column_list"/>
+			FROM operation_log
+		<include refid="query_condition"/>
+		<if test="query.orderBy != null">
+			order by ${query.orderBy}
+		</if>
+		<if test="query.simplePage != null">
+			limit ${query.simplePage.start}, ${query.simplePage.end}
+		</if>
+	</select>
+
+	<!-- 查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM operation_log
+		<include refid="query_condition"/>
+	</select>
+
+	<!-- 单条插入 (匹配有值的字段) -->
+	<insert id="insert" parameterType="com.ljw.entity.po.OperationLog">
+		<selectKey keyProperty="bean.id" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO operation_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.userId != null">
+				user_id,
+			</if>
+			<if test="bean.role != null">
+				role,
+			</if>
+			<if test="bean.title != null">
+				title,
+			</if>
+			<if test="bean.businessType != null">
+				business_type,
+			</if>
+			<if test="bean.method != null">
+				method,
+			</if>
+			<if test="bean.requestUrl != null">
+				request_url,
+			</if>
+			<if test="bean.operIp != null">
+				oper_ip,
+			</if>
+			<if test="bean.status != null">
+				status,
+			</if>
+			<if test="bean.errorMsg != null">
+				error_msg,
+			</if>
+			<if test="bean.createTime != null">
+				create_time,
+			</if>
+			<if test="bean.costTime != null">
+				cost_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.userId != null">
+				#{bean.userId},
+			</if>
+			<if test="bean.role != null">
+				#{bean.role},
+			</if>
+			<if test="bean.title != null">
+				#{bean.title},
+			</if>
+			<if test="bean.businessType != null">
+				#{bean.businessType},
+			</if>
+			<if test="bean.method != null">
+				#{bean.method},
+			</if>
+			<if test="bean.requestUrl != null">
+				#{bean.requestUrl},
+			</if>
+			<if test="bean.operIp != null">
+				#{bean.operIp},
+			</if>
+			<if test="bean.status != null">
+				#{bean.status},
+			</if>
+			<if test="bean.errorMsg != null">
+				#{bean.errorMsg},
+			</if>
+			<if test="bean.createTime != null">
+				#{bean.createTime},
+			</if>
+			<if test="bean.costTime != null">
+				#{bean.costTime},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 插入或者更新（匹配有值的字段） -->
+	<insert id="insertOrUpdate" parameterType="com.ljw.entity.po.OperationLog">
+		INSERT INTO operation_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.userId != null">
+				user_id,
+			</if>
+			<if test="bean.role != null">
+				role,
+			</if>
+			<if test="bean.title != null">
+				title,
+			</if>
+			<if test="bean.businessType != null">
+				business_type,
+			</if>
+			<if test="bean.method != null">
+				method,
+			</if>
+			<if test="bean.requestUrl != null">
+				request_url,
+			</if>
+			<if test="bean.operIp != null">
+				oper_ip,
+			</if>
+			<if test="bean.status != null">
+				status,
+			</if>
+			<if test="bean.errorMsg != null">
+				error_msg,
+			</if>
+			<if test="bean.createTime != null">
+				create_time,
+			</if>
+			<if test="bean.costTime != null">
+				cost_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.userId != null">
+				#{bean.userId},
+			</if>
+			<if test="bean.role != null">
+				#{bean.role},
+			</if>
+			<if test="bean.title != null">
+				#{bean.title},
+			</if>
+			<if test="bean.businessType != null">
+				#{bean.businessType},
+			</if>
+			<if test="bean.method != null">
+				#{bean.method},
+			</if>
+			<if test="bean.requestUrl != null">
+				#{bean.requestUrl},
+			</if>
+			<if test="bean.operIp != null">
+				#{bean.operIp},
+			</if>
+			<if test="bean.status != null">
+				#{bean.status},
+			</if>
+			<if test="bean.errorMsg != null">
+				#{bean.errorMsg},
+			</if>
+			<if test="bean.createTime != null">
+				#{bean.createTime},
+			</if>
+			<if test="bean.costTime != null">
+				#{bean.costTime},
+			</if>
+		</trim>
+		ON DUPLICATE KEY UPDATE
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.userId != null">
+				user_id = VALUES(user_id),
+			</if>
+			<if test="bean.role != null">
+				role = VALUES(role),
+			</if>
+			<if test="bean.title != null">
+				title = VALUES(title),
+			</if>
+			<if test="bean.businessType != null">
+				business_type = VALUES(business_type),
+			</if>
+			<if test="bean.method != null">
+				method = VALUES(method),
+			</if>
+			<if test="bean.requestUrl != null">
+				request_url = VALUES(request_url),
+			</if>
+			<if test="bean.operIp != null">
+				oper_ip = VALUES(oper_ip),
+			</if>
+			<if test="bean.status != null">
+				status = VALUES(status),
+			</if>
+			<if test="bean.errorMsg != null">
+				error_msg = VALUES(error_msg),
+			</if>
+			<if test="bean.createTime != null">
+				create_time = VALUES(create_time),
+			</if>
+			<if test="bean.costTime != null">
+				cost_time = VALUES(cost_time),
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 添加（批量添加） -->
+	<insert id="insertBatch" parameterType="com.ljw.entity.po.OperationLog" >
+		INSERT INTO operation_log(user_id, role, title, business_type, method, request_url, oper_ip, status, error_msg, create_time, cost_time) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.userId}, #{item.role}, #{item.title}, #{item.businessType}, #{item.method}, #{item.requestUrl}, #{item.operIp}, #{item.status}, #{item.errorMsg}, #{item.createTime}, #{item.costTime})
+		</foreach>
+	</insert>
+
+	<!-- 批量新增修改（批量插入） -->
+	<insert id="insertOrUpdateBatch" parameterType="com.ljw.entity.po.OperationLog" >
+		INSERT INTO operation_log(user_id, role, title, business_type, method, request_url, oper_ip, status, error_msg, create_time, cost_time) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.userId}, #{item.role}, #{item.title}, #{item.businessType}, #{item.method}, #{item.requestUrl}, #{item.operIp}, #{item.status}, #{item.errorMsg}, #{item.createTime}, #{item.costTime})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		id =  VALUES(id),
+		user_id =  VALUES(user_id),
+		role =  VALUES(role),
+		title =  VALUES(title),
+		business_type =  VALUES(business_type),
+		method =  VALUES(method),
+		request_url =  VALUES(request_url),
+		oper_ip =  VALUES(oper_ip),
+		status =  VALUES(status),
+		error_msg =  VALUES(error_msg),
+		create_time =  VALUES(create_time),
+		cost_time =  VALUES(cost_time)
+	</insert>
+
+	<!-- 根据 Id 查询 -->
+	<select id="selectById" resultMap="base_result_map">
+		select
+		<include refid="base_column_list"/> 
+		from operation_log where id =#{id}
+	</select>
+
+	<!-- 根据 Id 更新 -->
+	<update id="updateById" parameterType="com.ljw.entity.po.OperationLog">
+		update operation_log
+		<set>
+			<if test="bean.id != null">
+				id= #{bean.id},
+			</if>
+			<if test="bean.userId != null">
+				user_id= #{bean.userId},
+			</if>
+			<if test="bean.role != null">
+				role= #{bean.role},
+			</if>
+			<if test="bean.title != null">
+				title= #{bean.title},
+			</if>
+			<if test="bean.businessType != null">
+				business_type= #{bean.businessType},
+			</if>
+			<if test="bean.method != null">
+				method= #{bean.method},
+			</if>
+			<if test="bean.requestUrl != null">
+				request_url= #{bean.requestUrl},
+			</if>
+			<if test="bean.operIp != null">
+				oper_ip= #{bean.operIp},
+			</if>
+			<if test="bean.status != null">
+				status= #{bean.status},
+			</if>
+			<if test="bean.errorMsg != null">
+				error_msg= #{bean.errorMsg},
+			</if>
+			<if test="bean.createTime != null">
+				create_time= #{bean.createTime},
+			</if>
+			<if test="bean.costTime != null">
+				cost_time= #{bean.costTime},
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+
+	<!-- 根据 Id 删除 -->
+	<delete id="deleteById">
+		delete from operation_log where id =#{id}
+	</delete>
+
+</mapper>

@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ljw.mapper.PatientMapper">
+	<!-- 实体映射-->
+	<resultMap id="base_result_map" type="com.ljw.entity.po.Patient">
+		<!--主键ID-->
+		<id column="id" property="id"/>
+		<!--电话号码-->
+		<result column="phone" property="phone"/>
+		<!--身份证号-->
+		<result column="id_card" property="idCard"/>
+		<!--姓名-->
+		<result column="name" property="name"/>
+		<!--是否实名认证(0:否,1:是)-->
+		<result column="verified" property="verified"/>
+		<!--审核人-->
+		<result column="verified_by" property="verifiedBy"/>
+		<!--审核时间-->
+		<result column="verified_time" property="verifiedTime"/>
+		<!--openid-->
+		<result column="open_id" property="openId"/>
+		<!--医院患者编号-->
+		<result column="hospital_pid" property="hospitalPid"/>
+		<!--省-->
+		<result column="province" property="province"/>
+		<!--市-->
+		<result column="city" property="city"/>
+		<!--区-->
+		<result column="county" property="county"/>
+		<!--生日-->
+		<result column="birthday" property="birthday"/>
+		<!--性别-->
+		<result column="sex" property="sex"/>
+		<!--年龄-->
+		<result column="age" property="age"/>
+		<!--头像-->
+		<result column="avatar" property="avatar"/>
+	</resultMap>
+
+	<!-- 通用查询结果列 -->
+	<sql id="base_column_list">
+		id,phone,id_card,name,verified,verified_by,verified_time,open_id,hospital_pid,province,city,county,birthday,sex,age,avatar
+	</sql>
+
+	<!-- 基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test=" query.id != null">
+			and id= #{query.id}
+		</if>
+		<if test=" query.phone != null and query.phone!= ''">
+			and phone= #{query.phone}
+		</if>
+		<if test=" query.idCard != null and query.idCard!= ''">
+			and id_card= #{query.idCard}
+		</if>
+		<if test=" query.name != null and query.name!= ''">
+			and name= #{query.name}
+		</if>
+		<if test=" query.verified != null">
+			and verified= #{query.verified}
+		</if>
+		<if test=" query.verifiedBy != null and query.verifiedBy!= ''">
+			and verified_by= #{query.verifiedBy}
+		</if>
+		<if test=" query.verifiedTime != null">
+			and verified_time= #{query.verifiedTime}
+		</if>
+		<if test=" query.openId != null and query.openId!= ''">
+			and open_id= #{query.openId}
+		</if>
+		<if test=" query.hospitalPid != null and query.hospitalPid!= ''">
+			and hospital_pid= #{query.hospitalPid}
+		</if>
+		<if test=" query.province != null and query.province!= ''">
+			and province= #{query.province}
+		</if>
+		<if test=" query.city != null and query.city!= ''">
+			and city= #{query.city}
+		</if>
+		<if test=" query.county != null and query.county!= ''">
+			and county= #{query.county}
+		</if>
+		<if test=" query.birthday != null and query.birthday!= ''">
+			and birthday= #{query.birthday}
+		</if>
+		<if test=" query.sex != null and query.sex!= ''">
+			and sex= #{query.sex}
+		</if>
+		<if test=" query.age != null">
+			and age= #{query.age}
+		</if>
+		<if test=" query.startAge != null and query.endAge != null">
+			and age between #{query.startAge} and #{query.endAge}
+		</if>
+		<if test=" query.avatar != null and query.avatar!= ''">
+			and avatar= #{query.avatar}
+		</if>
+	</sql>
+
+	<!-- 扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+		<if test=" query.phoneFuzzy != null and query.phoneFuzzy!= null ">
+			and phone like concat('%', #{query.phoneFuzzy}, '%')
+		</if>
+		<if test=" query.idCardFuzzy != null and query.idCardFuzzy!= null ">
+			and id_card like concat('%', #{query.idCardFuzzy}, '%')
+		</if>
+		<if test=" query.nameFuzzy != null and query.nameFuzzy!= null ">
+			and name like concat('%', #{query.nameFuzzy}, '%')
+		</if>
+		<if test=" query.verifiedByFuzzy != null and query.verifiedByFuzzy!= null ">
+			and verified_by like concat('%', #{query.verifiedByFuzzy}, '%')
+		</if>
+		<if test=" query.verifiedTimeStart != null and query.verifiedTimeStart!= null ">
+			<![CDATA[ and verified_time >= str_to_date(#{query.verifiedTimeStart}, '%Y-%m-%d') ]]>
+		</if>
+		<if test=" query.verifiedTimeEnd != null and query.verifiedTimeEnd!= null ">
+			<![CDATA[ and verified_time < date_sub(str_to_date(#{query.verifiedTimeEnd}, '%Y-%m-%d'), interval -1 day) ]]>
+		</if>
+		<if test=" query.openIdFuzzy != null and query.openIdFuzzy!= null ">
+			and open_id like concat('%', #{query.openIdFuzzy}, '%')
+		</if>
+		<if test=" query.hospitalPidFuzzy != null and query.hospitalPidFuzzy!= null ">
+			and hospital_pid like concat('%', #{query.hospitalPidFuzzy}, '%')
+		</if>
+		<if test=" query.provinceFuzzy != null and query.provinceFuzzy!= null ">
+			and province like concat('%', #{query.provinceFuzzy}, '%')
+		</if>
+		<if test=" query.cityFuzzy != null and query.cityFuzzy!= null ">
+			and city like concat('%', #{query.cityFuzzy}, '%')
+		</if>
+		<if test=" query.countyFuzzy != null and query.countyFuzzy!= null ">
+			and county like concat('%', #{query.countyFuzzy}, '%')
+		</if>
+		<if test=" query.birthdayFuzzy != null and query.birthdayFuzzy!= null ">
+			and birthday like concat('%', #{query.birthdayFuzzy}, '%')
+		</if>
+		<if test=" query.sexFuzzy != null and query.sexFuzzy!= null ">
+			and sex like concat('%', #{query.sexFuzzy}, '%')
+		</if>
+		<if test=" query.avatarFuzzy != null and query.avatarFuzzy!= null ">
+			and avatar like concat('%', #{query.avatarFuzzy}, '%')
+		</if>
+	</sql>
+
+	<!-- 通用查询条件 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+
+	<!-- 查询列表 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT 
+		<include refid="base_column_list"/>
+			FROM patient
+		<include refid="query_condition"/>
+		<if test="query.orderBy != null">
+			order by ${query.orderBy}
+		</if>
+		<if test="query.simplePage != null">
+			limit ${query.simplePage.start}, ${query.simplePage.end}
+		</if>
+	</select>
+
+	<!-- 查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM patient
+		<include refid="query_condition"/>
+	</select>
+
+	<!-- 单条插入 (匹配有值的字段) -->
+	<insert id="insert" parameterType="com.ljw.entity.po.Patient">
+		<selectKey keyProperty="bean.id" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO patient
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.phone != null">
+				phone,
+			</if>
+			<if test="bean.idCard != null">
+				id_card,
+			</if>
+			<if test="bean.name != null">
+				name,
+			</if>
+			<if test="bean.verified != null">
+				verified,
+			</if>
+			<if test="bean.verifiedBy != null">
+				verified_by,
+			</if>
+			<if test="bean.verifiedTime != null">
+				verified_time,
+			</if>
+			<if test="bean.openId != null">
+				open_id,
+			</if>
+			<if test="bean.hospitalPid != null">
+				hospital_pid,
+			</if>
+			<if test="bean.province != null">
+				province,
+			</if>
+			<if test="bean.city != null">
+				city,
+			</if>
+			<if test="bean.county != null">
+				county,
+			</if>
+			<if test="bean.birthday != null">
+				birthday,
+			</if>
+			<if test="bean.sex != null">
+				sex,
+			</if>
+			<if test="bean.age != null">
+				age,
+			</if>
+			<if test="bean.avatar != null">
+				avatar,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.phone != null">
+				#{bean.phone},
+			</if>
+			<if test="bean.idCard != null">
+				#{bean.idCard},
+			</if>
+			<if test="bean.name != null">
+				#{bean.name},
+			</if>
+			<if test="bean.verified != null">
+				#{bean.verified},
+			</if>
+			<if test="bean.verifiedBy != null">
+				#{bean.verifiedBy},
+			</if>
+			<if test="bean.verifiedTime != null">
+				#{bean.verifiedTime},
+			</if>
+			<if test="bean.openId != null">
+				#{bean.openId},
+			</if>
+			<if test="bean.hospitalPid != null">
+				#{bean.hospitalPid},
+			</if>
+			<if test="bean.province != null">
+				#{bean.province},
+			</if>
+			<if test="bean.city != null">
+				#{bean.city},
+			</if>
+			<if test="bean.county != null">
+				#{bean.county},
+			</if>
+			<if test="bean.birthday != null">
+				#{bean.birthday},
+			</if>
+			<if test="bean.sex != null">
+				#{bean.sex},
+			</if>
+			<if test="bean.age != null">
+				#{bean.age},
+			</if>
+			<if test="bean.avatar != null">
+				#{bean.avatar},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 插入或者更新（匹配有值的字段） -->
+	<insert id="insertOrUpdate" parameterType="com.ljw.entity.po.Patient">
+		INSERT INTO patient
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.phone != null">
+				phone,
+			</if>
+			<if test="bean.idCard != null">
+				id_card,
+			</if>
+			<if test="bean.name != null">
+				name,
+			</if>
+			<if test="bean.verified != null">
+				verified,
+			</if>
+			<if test="bean.verifiedBy != null">
+				verified_by,
+			</if>
+			<if test="bean.verifiedTime != null">
+				verified_time,
+			</if>
+			<if test="bean.openId != null">
+				open_id,
+			</if>
+			<if test="bean.hospitalPid != null">
+				hospital_pid,
+			</if>
+			<if test="bean.province != null">
+				province,
+			</if>
+			<if test="bean.city != null">
+				city,
+			</if>
+			<if test="bean.county != null">
+				county,
+			</if>
+			<if test="bean.birthday != null">
+				birthday,
+			</if>
+			<if test="bean.sex != null">
+				sex,
+			</if>
+			<if test="bean.age != null">
+				age,
+			</if>
+			<if test="bean.avatar != null">
+				avatar,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.phone != null">
+				#{bean.phone},
+			</if>
+			<if test="bean.idCard != null">
+				#{bean.idCard},
+			</if>
+			<if test="bean.name != null">
+				#{bean.name},
+			</if>
+			<if test="bean.verified != null">
+				#{bean.verified},
+			</if>
+			<if test="bean.verifiedBy != null">
+				#{bean.verifiedBy},
+			</if>
+			<if test="bean.verifiedTime != null">
+				#{bean.verifiedTime},
+			</if>
+			<if test="bean.openId != null">
+				#{bean.openId},
+			</if>
+			<if test="bean.hospitalPid != null">
+				#{bean.hospitalPid},
+			</if>
+			<if test="bean.province != null">
+				#{bean.province},
+			</if>
+			<if test="bean.city != null">
+				#{bean.city},
+			</if>
+			<if test="bean.county != null">
+				#{bean.county},
+			</if>
+			<if test="bean.birthday != null">
+				#{bean.birthday},
+			</if>
+			<if test="bean.sex != null">
+				#{bean.sex},
+			</if>
+			<if test="bean.age != null">
+				#{bean.age},
+			</if>
+			<if test="bean.avatar != null">
+				#{bean.avatar},
+			</if>
+		</trim>
+		ON DUPLICATE KEY UPDATE
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.phone != null">
+				phone = VALUES(phone),
+			</if>
+			<if test="bean.idCard != null">
+				id_card = VALUES(id_card),
+			</if>
+			<if test="bean.name != null">
+				name = VALUES(name),
+			</if>
+			<if test="bean.verified != null">
+				verified = VALUES(verified),
+			</if>
+			<if test="bean.verifiedBy != null">
+				verified_by = VALUES(verified_by),
+			</if>
+			<if test="bean.verifiedTime != null">
+				verified_time = VALUES(verified_time),
+			</if>
+			<if test="bean.openId != null">
+				open_id = VALUES(open_id),
+			</if>
+			<if test="bean.hospitalPid != null">
+				hospital_pid = VALUES(hospital_pid),
+			</if>
+			<if test="bean.province != null">
+				province = VALUES(province),
+			</if>
+			<if test="bean.city != null">
+				city = VALUES(city),
+			</if>
+			<if test="bean.county != null">
+				county = VALUES(county),
+			</if>
+			<if test="bean.birthday != null">
+				birthday = VALUES(birthday),
+			</if>
+			<if test="bean.sex != null">
+				sex = VALUES(sex),
+			</if>
+			<if test="bean.age != null">
+				age = VALUES(age),
+			</if>
+			<if test="bean.avatar != null">
+				avatar = VALUES(avatar),
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 添加（批量添加） -->
+	<insert id="insertBatch" parameterType="com.ljw.entity.po.Patient" >
+		INSERT INTO patient(phone, id_card, name, verified, verified_by, verified_time, open_id, hospital_pid, province, city, county, birthday, sex, age, avatar) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.phone}, #{item.idCard}, #{item.name}, #{item.verified}, #{item.verifiedBy}, #{item.verifiedTime}, #{item.openId}, #{item.hospitalPid}, #{item.province}, #{item.city}, #{item.county}, #{item.birthday}, #{item.sex}, #{item.age}, #{item.avatar})
+		</foreach>
+	</insert>
+
+	<!-- 批量新增修改（批量插入） -->
+	<insert id="insertOrUpdateBatch" parameterType="com.ljw.entity.po.Patient" >
+		INSERT INTO patient(phone, id_card, name, verified, verified_by, verified_time, open_id, hospital_pid, province, city, county, birthday, sex, age, avatar) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.phone}, #{item.idCard}, #{item.name}, #{item.verified}, #{item.verifiedBy}, #{item.verifiedTime}, #{item.openId}, #{item.hospitalPid}, #{item.province}, #{item.city}, #{item.county}, #{item.birthday}, #{item.sex}, #{item.age}, #{item.avatar})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		id =  VALUES(id),
+		phone =  VALUES(phone),
+		id_card =  VALUES(id_card),
+		name =  VALUES(name),
+		verified =  VALUES(verified),
+		verified_by =  VALUES(verified_by),
+		verified_time =  VALUES(verified_time),
+		open_id =  VALUES(open_id),
+		hospital_pid =  VALUES(hospital_pid),
+		province =  VALUES(province),
+		city =  VALUES(city),
+		county =  VALUES(county),
+		birthday =  VALUES(birthday),
+		sex =  VALUES(sex),
+		age =  VALUES(age),
+		avatar =  VALUES(avatar)
+	</insert>
+
+	<!-- 根据 Id 查询 -->
+	<select id="selectById" resultMap="base_result_map">
+		select
+		<include refid="base_column_list"/> 
+		from patient where id =#{id}
+	</select>
+
+	<!-- 根据 Id 更新 -->
+	<update id="updateById" parameterType="com.ljw.entity.po.Patient">
+		update patient
+		<set>
+			<if test="bean.id != null">
+				id= #{bean.id},
+			</if>
+			<if test="bean.phone != null">
+				phone= #{bean.phone},
+			</if>
+			<if test="bean.idCard != null">
+				id_card= #{bean.idCard},
+			</if>
+			<if test="bean.name != null">
+				name= #{bean.name},
+			</if>
+			<if test="bean.verified != null">
+				verified= #{bean.verified},
+			</if>
+			<if test="bean.verifiedBy != null">
+				verified_by= #{bean.verifiedBy},
+			</if>
+			<if test="bean.verifiedTime != null">
+				verified_time= #{bean.verifiedTime},
+			</if>
+			<if test="bean.openId != null">
+				open_id= #{bean.openId},
+			</if>
+			<if test="bean.hospitalPid != null">
+				hospital_pid= #{bean.hospitalPid},
+			</if>
+			<if test="bean.province != null">
+				province= #{bean.province},
+			</if>
+			<if test="bean.city != null">
+				city= #{bean.city},
+			</if>
+			<if test="bean.county != null">
+				county= #{bean.county},
+			</if>
+			<if test="bean.birthday != null">
+				birthday= #{bean.birthday},
+			</if>
+			<if test="bean.sex != null">
+				sex= #{bean.sex},
+			</if>
+			<if test="bean.age != null">
+				age= #{bean.age},
+			</if>
+			<if test="bean.avatar != null">
+				avatar= #{bean.avatar},
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+
+	<!-- 根据 Id 删除 -->
+	<delete id="deleteById">
+		delete from patient where id =#{id}
+	</delete>
+
+</mapper>

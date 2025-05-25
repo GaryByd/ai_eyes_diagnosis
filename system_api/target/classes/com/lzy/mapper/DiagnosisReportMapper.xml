@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lzy.mapper.DiagnosisReportMapper">
+	<!-- 实体映射-->
+	<resultMap id="base_result_map" type="com.lzy.entity.po.DiagnosisReport">
+		<!--主键ID-->
+		<id column="id" property="id"/>
+		<!--患者ID-->
+		<result column="patient_id" property="patientId"/>
+		<!--医生ID-->
+		<result column="doctor_id" property="doctorId"/>
+		<!--AI模型版本ID-->
+		<result column="aimodel_id" property="aimodelId"/>
+		<!--AI诊断结果-->
+		<result column="result" property="result"/>
+		<!--创建时间-->
+		<result column="create_time" property="createTime"/>
+		<!--confirmed/archived-->
+		<result column="status" property="status"/>
+		<!--病人身份证号-->
+		<result column="id_card" property="idCard"/>
+		<!--病人名称-->
+		<result column="name" property="name"/>
+		<!--医生打分-->
+		<result column="score" property="score"/>
+		<!--医生备注-->
+		<result column="remark" property="remark"/>
+	</resultMap>
+
+	<!-- 通用查询结果列 -->
+	<sql id="base_column_list">
+		id,patient_id,doctor_id,aimodel_id,result,create_time,status,id_card,name,score,remark
+	</sql>
+
+	<!-- 基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test=" query.id != null">
+			and id= #{query.id}
+		</if>
+		<if test=" query.patientId != null">
+			and patient_id= #{query.patientId}
+		</if>
+		<if test=" query.doctorId != null">
+			and doctor_id= #{query.doctorId}
+		</if>
+		<if test=" query.diseaseName != null and query.diseaseName!= ''">
+			and disease_name= #{query.diseaseName}
+		</if>
+		<if test=" query.diseaseCategory != null and query.diseaseCategory!= ''">
+			and disease_category= #{query.diseaseCategory}
+		</if>
+		<if test=" query.aimodelId != null">
+			and aimodel_id= #{query.aimodelId}
+		</if>
+		<if test=" query.result != null and query.result!= ''">
+			and result= #{query.result}
+		</if>
+		<if test=" query.createTime != null">
+			and create_time= #{query.createTime}
+		</if>
+		<if test=" query.status != null and query.status!= ''">
+			and status= #{query.status}
+		</if>
+		<if test=" query.idCard != null and query.idCard!= ''">
+			and id_card= #{query.idCard}
+		</if>
+		<if test=" query.name != null and query.name!= ''">
+			and name= #{query.name}
+		</if>
+		<if test=" query.score != null">
+			and score= #{query.score}
+		</if>
+		<if test=" query.remark != null and query.remark!= ''">
+			and remark= #{query.remark}
+		</if>
+	</sql>
+
+	<!-- 扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+		<if test=" query.diseaseNameFuzzy != null and query.diseaseNameFuzzy!= null ">
+			and disease_name like concat('%', #{query.diseaseNameFuzzy}, '%')
+		</if>
+		<if test=" query.diseaseCategoryFuzzy != null and query.diseaseCategoryFuzzy!= null ">
+			and disease_category like concat('%', #{query.diseaseCategoryFuzzy}, '%')
+		</if>
+		<if test=" query.resultFuzzy != null and query.resultFuzzy!= null ">
+			and result like concat('%', #{query.resultFuzzy}, '%')
+		</if>
+		<if test=" query.createTimeStart != null and query.createTimeStart!= null ">
+			<![CDATA[ and create_time >= str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
+		</if>
+		<if test=" query.createTimeEnd != null and query.createTimeEnd!= null ">
+			<![CDATA[ and create_time < date_sub(str_to_date(#{query.createTimeEnd}, '%Y-%m-%d'), interval -1 day) ]]>
+		</if>
+		<if test=" query.statusFuzzy != null and query.statusFuzzy!= null ">
+			and status like concat('%', #{query.statusFuzzy}, '%')
+		</if>
+		<if test=" query.idCardFuzzy != null and query.idCardFuzzy!= null ">
+			and id_card like concat('%', #{query.idCardFuzzy}, '%')
+		</if>
+		<if test=" query.nameFuzzy != null and query.nameFuzzy!= null ">
+			and name like concat('%', #{query.nameFuzzy}, '%')
+		</if>
+		<if test=" query.remarkFuzzy != null and query.remarkFuzzy!= null ">
+			and remark like concat('%', #{query.remarkFuzzy}, '%')
+		</if>
+	</sql>
+
+	<!-- 通用查询条件 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+
+	<!-- 查询列表 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT 
+		<include refid="base_column_list"/>
+			FROM diagnosis_report
+		<include refid="query_condition"/>
+		<if test="query.orderBy != null">
+			order by ${query.orderBy}
+		</if>
+		ORDER BY create_time desc
+		<if test="query.simplePage != null">
+			limit ${query.simplePage.start}, ${query.simplePage.end}
+		</if>
+	</select>
+
+	<!-- 查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM diagnosis_report
+		<include refid="query_condition"/>
+	</select>
+
+	<!-- 单条插入 (匹配有值的字段) -->
+	<insert id="insert" parameterType="com.lzy.entity.po.DiagnosisReport">
+		<selectKey keyProperty="bean.id" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO diagnosis_report
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.patientId != null">
+				patient_id,
+			</if>
+			<if test="bean.doctorId != null">
+				doctor_id,
+			</if>
+			<if test="bean.diseaseName != null">
+				disease_name,
+			</if>
+			<if test="bean.diseaseCategory != null">
+				disease_category,
+			</if>
+			<if test="bean.aimodelId != null">
+				aimodel_id,
+			</if>
+			<if test="bean.result != null">
+				result,
+			</if>
+			<if test="bean.createTime != null">
+				create_time,
+			</if>
+			<if test="bean.status != null">
+				status,
+			</if>
+			<if test="bean.idCard != null">
+				id_card,
+			</if>
+			<if test="bean.name != null">
+				name,
+			</if>
+			<if test="bean.score != null">
+				score,
+			</if>
+			<if test="bean.remark != null">
+				remark,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.patientId != null">
+				#{bean.patientId},
+			</if>
+			<if test="bean.doctorId != null">
+				#{bean.doctorId},
+			</if>
+			<if test="bean.diseaseName != null">
+				#{bean.diseaseName},
+			</if>
+			<if test="bean.diseaseCategory != null">
+				#{bean.diseaseCategory},
+			</if>
+			<if test="bean.aimodelId != null">
+				#{bean.aimodelId},
+			</if>
+			<if test="bean.result != null">
+				#{bean.result},
+			</if>
+			<if test="bean.createTime != null">
+				#{bean.createTime},
+			</if>
+			<if test="bean.status != null">
+				#{bean.status},
+			</if>
+			<if test="bean.idCard != null">
+				#{bean.idCard},
+			</if>
+			<if test="bean.name != null">
+				#{bean.name},
+			</if>
+			<if test="bean.score != null">
+				#{bean.score},
+			</if>
+			<if test="bean.remark != null">
+				#{bean.remark},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 插入或者更新（匹配有值的字段） -->
+	<insert id="insertOrUpdate" parameterType="com.lzy.entity.po.DiagnosisReport">
+		INSERT INTO diagnosis_report
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.patientId != null">
+				patient_id,
+			</if>
+			<if test="bean.doctorId != null">
+				doctor_id,
+			</if>
+			<if test="bean.diseaseName != null">
+				disease_name,
+			</if>
+			<if test="bean.diseaseCategory != null">
+				disease_category,
+			</if>
+			<if test="bean.aimodelId != null">
+				aimodel_id,
+			</if>
+			<if test="bean.result != null">
+				result,
+			</if>
+			<if test="bean.createTime != null">
+				create_time,
+			</if>
+			<if test="bean.status != null">
+				status,
+			</if>
+			<if test="bean.idCard != null">
+				id_card,
+			</if>
+			<if test="bean.name != null">
+				name,
+			</if>
+			<if test="bean.score != null">
+				score,
+			</if>
+			<if test="bean.remark != null">
+				remark,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.patientId != null">
+				#{bean.patientId},
+			</if>
+			<if test="bean.doctorId != null">
+				#{bean.doctorId},
+			</if>
+			<if test="bean.diseaseName != null">
+				#{bean.diseaseName},
+			</if>
+			<if test="bean.diseaseCategory != null">
+				#{bean.diseaseCategory},
+			</if>
+			<if test="bean.aimodelId != null">
+				#{bean.aimodelId},
+			</if>
+			<if test="bean.result != null">
+				#{bean.result},
+			</if>
+			<if test="bean.createTime != null">
+				#{bean.createTime},
+			</if>
+			<if test="bean.status != null">
+				#{bean.status},
+			</if>
+			<if test="bean.idCard != null">
+				#{bean.idCard},
+			</if>
+			<if test="bean.name != null">
+				#{bean.name},
+			</if>
+			<if test="bean.score != null">
+				#{bean.score},
+			</if>
+			<if test="bean.remark != null">
+				#{bean.remark},
+			</if>
+		</trim>
+		ON DUPLICATE KEY UPDATE
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.patientId != null">
+				patient_id = VALUES(patient_id),
+			</if>
+			<if test="bean.doctorId != null">
+				doctor_id = VALUES(doctor_id),
+			</if>
+			<if test="bean.diseaseName != null">
+				disease_name = VALUES(disease_name),
+			</if>
+			<if test="bean.diseaseCategory != null">
+				disease_category = VALUES(disease_category),
+			</if>
+			<if test="bean.aimodelId != null">
+				aimodel_id = VALUES(aimodel_id),
+			</if>
+			<if test="bean.result != null">
+				result = VALUES(result),
+			</if>
+			<if test="bean.createTime != null">
+				create_time = VALUES(create_time),
+			</if>
+			<if test="bean.status != null">
+				status = VALUES(status),
+			</if>
+			<if test="bean.idCard != null">
+				id_card = VALUES(id_card),
+			</if>
+			<if test="bean.name != null">
+				name = VALUES(name),
+			</if>
+			<if test="bean.score != null">
+				score = VALUES(score),
+			</if>
+			<if test="bean.remark != null">
+				remark = VALUES(remark),
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 添加（批量添加） -->
+	<insert id="insertBatch" parameterType="com.lzy.entity.po.DiagnosisReport" >
+		INSERT INTO diagnosis_report(patient_id, doctor_id, aimodel_id, result, create_time, status, id_card, name, score, remark) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.patientId}, #{item.doctorId},  #{item.aimodelId}, #{item.result}, #{item.createTime}, #{item.status}, #{item.idCard}, #{item.name}, #{item.score}, #{item.remark})
+		</foreach>
+	</insert>
+
+	<!-- 批量新增修改（批量插入） -->
+	<insert id="insertOrUpdateBatch" parameterType="com.lzy.entity.po.DiagnosisReport" >
+		INSERT INTO diagnosis_report(patient_id, doctor_id,  aimodel_id, result, create_time, status, id_card, name, score, remark) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.patientId}, #{item.doctorId}, #{item.aimodelId}, #{item.result}, #{item.createTime}, #{item.status}, #{item.idCard}, #{item.name}, #{item.score}, #{item.remark})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		id =  VALUES(id),
+		patient_id =  VALUES(patient_id),
+		doctor_id =  VALUES(doctor_id),
+		aimodel_id =  VALUES(aimodel_id),
+		result =  VALUES(result),
+		create_time =  VALUES(create_time),
+		status =  VALUES(status),
+		id_card =  VALUES(id_card),
+		name =  VALUES(name),
+		score =  VALUES(score),
+		remark =  VALUES(remark)
+	</insert>
+
+	<!-- 根据 Id 查询 -->
+	<select id="selectById" resultMap="base_result_map">
+		select
+		<include refid="base_column_list"/> 
+		from diagnosis_report where id =#{id}
+	</select>
+    <select id="selectRecentDiagnosis" resultMap="base_result_map">
+		SELECT
+		<include refid="base_column_list"/>
+		from diagnosis_report WHERE patient_id = 1
+		ORDER BY diagnosis_report.create_time DESC
+		LIMIT 1 OFFSET 1
+	</select>
+
+
+	<select id="findDiseaseCount" resultType="com.lzy.entity.vo.DiseaseCountVO">
+		SELECT
+			jt.item AS diseaseName,
+			COUNT(*) AS count
+		FROM diagnosis_report
+			CROSS JOIN JSON_TABLE(
+			CONCAT('["', REPLACE(result, ',', '","'), '"]'),
+			'$[*]' COLUMNS (
+			item VARCHAR(255) PATH '$'
+			)
+			) AS jt
+		<where>
+		    jt.item IN (
+			"ARMD",
+			"Cataract",
+			"Diabetic Retinopathy",
+			"Glaucoma",
+			"Hypertension",
+			"Myopia",
+			"Normal",
+			"Other Diseases"
+			)
+			<if test="startDate != null and endDate != null">
+				AND create_time BETWEEN #{startDate} AND #{endDate}
+			</if>
+			<!-- 动态添加 disease_category 条件 -->
+			<if test="diseaseCategory != null">
+				AND disease_category = #{diseaseCategory}
+			</if>
+			<!-- 动态添加 status 条件 -->
+			<if test="status != null">
+				AND status = #{status}
+			</if>
+		</where>
+		GROUP BY jt.item
+	</select>
+
+	<select id="findStatusCount" resultType="com.lzy.entity.vo.StatusCountVO">
+		SELECT
+			status,
+			COUNT(*) AS count
+		FROM
+			diagnosis_report
+		<where>
+			<!-- 动态添加 create_time BETWEEN 条件 -->
+			<if test="startDate != null and endDate != null">
+				AND create_time BETWEEN #{startDate} AND #{endDate}
+			</if>
+			<!-- 动态添加 disease_category 条件 -->
+			<if test="diseaseCategory != null">
+				AND disease_category = #{diseaseCategory}
+			</if>
+			<!-- 动态添加 status 条件 -->
+			<if test="status != null">
+				AND status = #{status}
+			</if>
+		</where>
+		GROUP BY
+			status;
+	</select>
+	<select id="findDateCount" resultType="com.lzy.entity.vo.DateCountVO">
+		SELECT
+		    DATE(create_time) AS date,
+		    COUNT(*) AS count
+		FROM
+			diagnosis_report
+		<where>
+			<!-- 动态添加 create_time BETWEEN 条件 -->
+			<if test="startDate != null and endDate != null">
+				AND create_time BETWEEN #{startDate} AND #{endDate}
+			</if>
+			<!-- 动态添加 disease_category 条件 -->
+			<if test="diseaseCategory != null">
+				AND disease_category = #{diseaseCategory}
+			</if>
+			<!-- 动态添加 status 条件 -->
+			<if test="status != null">
+				AND status = #{status}
+			</if>
+		</where>
+		GROUP BY
+			DATE(create_time);
+	</select>
+    <select id="recentMonthPatientsCount" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM patient
+		WHERE patient.verified_time >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+	</select>
+	<select id="countByAimodelIdAndAvgByScore" resultType="com.lzy.entity.dao.AimodelCountAndAvgScore">
+		SELECT
+		    aimodel_id as id,
+		    count(*) as totalDiagnosis,
+		    AVG(score) as averageScore
+		FROM diagnosis_report
+		GROUP BY aimodel_id;
+	</select>
+	<select id="getDoctorConfirmedCount" resultType="com.lzy.entity.vo.DoctorDiagnosisCountVO">
+		SELECT
+			dr.doctor_id AS doctorId,
+			d.name AS doctorName,
+			COUNT(dr.doctor_id) AS confirmedCount
+		FROM diagnosis_report dr
+				 INNER JOIN doctor d
+							ON d.id = dr.doctor_id
+		WHERE dr.status = 'confirmed'
+		GROUP BY
+			dr.doctor_id;
+	</select>
+
+	<!-- 根据 Id 更新 -->
+	<update id="updateById" parameterType="com.lzy.entity.po.DiagnosisReport">
+		update diagnosis_report
+		<set>
+			<if test="bean.id != null">
+				id= #{bean.id},
+			</if>
+			<if test="bean.patientId != null">
+				patient_id= #{bean.patientId},
+			</if>
+			<if test="bean.doctorId != null">
+				doctor_id= #{bean.doctorId},
+			</if>
+			<if test="bean.diseaseName != null">
+				disease_name= #{bean.diseaseName},
+			</if>
+			<if test="bean.diseaseCategory != null">
+				disease_category= #{bean.diseaseCategory},
+			</if>
+			<if test="bean.aimodelId != null">
+				aimodel_id= #{bean.aimodelId},
+			</if>
+			<if test="bean.result != null">
+				result= #{bean.result},
+			</if>
+			<if test="bean.createTime != null">
+				create_time= #{bean.createTime},
+			</if>
+			<if test="bean.status != null">
+				status= #{bean.status},
+			</if>
+			<if test="bean.idCard != null">
+				id_card= #{bean.idCard},
+			</if>
+			<if test="bean.name != null">
+				name= #{bean.name},
+			</if>
+			<if test="bean.score != null">
+				score= #{bean.score},
+			</if>
+			<if test="bean.remark != null">
+				remark= #{bean.remark},
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+    <update id="updateScoreById">
+		update diagnosis_report
+		set score = #{score}
+		where id = #{id}
+	</update>
+
+    <!-- 根据 Id 删除 -->
+	<delete id="deleteById">
+		delete from diagnosis_report where id =#{id}
+	</delete>
+
+</mapper>

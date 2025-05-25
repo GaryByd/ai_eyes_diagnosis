@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ljw.mapper.EyeImagesMapper">
+	<!-- 实体映射-->
+	<resultMap id="base_result_map" type="com.ljw.entity.po.EyeImages">
+		<!--主键ID-->
+		<id column="id" property="id"/>
+		<!--图片路径-->
+		<result column="url" property="url"/>
+		<!--关联报告ID-->
+		<result column="dignosis_report_id" property="dignosisReportId"/>
+		<!--眼别 OD/OS-->
+		<result column="eye_position" property="eyePosition"/>
+		<!--DICOM元数据-->
+		<result column="dicom_data" property="dicomData"/>
+	</resultMap>
+
+	<!-- 通用查询结果列 -->
+	<sql id="base_column_list">
+		id,url,dignosis_report_id,eye_position,dicom_data
+	</sql>
+
+	<!-- 基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test=" query.id != null">
+			and id= #{query.id}
+		</if>
+		<if test=" query.url != null and query.url!= ''">
+			and url= #{query.url}
+		</if>
+		<if test=" query.dignosisReportId != null">
+			and dignosis_report_id= #{query.dignosisReportId}
+		</if>
+		<if test=" query.eyePosition != null and query.eyePosition!= ''">
+			and eye_position= #{query.eyePosition}
+		</if>
+		<if test=" query.dicomData != null and query.dicomData!= ''">
+			and dicom_data= #{query.dicomData}
+		</if>
+	</sql>
+
+	<!-- 扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+		<if test=" query.urlFuzzy != null and query.urlFuzzy!= null ">
+			and url like concat('%', #{query.urlFuzzy}, '%')
+		</if>
+		<if test=" query.eyePositionFuzzy != null and query.eyePositionFuzzy!= null ">
+			and eye_position like concat('%', #{query.eyePositionFuzzy}, '%')
+		</if>
+		<if test=" query.dicomDataFuzzy != null and query.dicomDataFuzzy!= null ">
+			and dicom_data like concat('%', #{query.dicomDataFuzzy}, '%')
+		</if>
+	</sql>
+
+	<!-- 通用查询条件 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+
+	<!-- 查询列表 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT 
+		<include refid="base_column_list"/>
+			FROM eye_images
+		<include refid="query_condition"/>
+		<if test="query.orderBy != null">
+			order by ${query.orderBy}
+		</if>
+		<if test="query.simplePage != null">
+			limit ${query.simplePage.start}, ${query.simplePage.end}
+		</if>
+	</select>
+
+	<!-- 查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM eye_images
+		<include refid="query_condition"/>
+	</select>
+
+	<!-- 单条插入 (匹配有值的字段) -->
+	<insert id="insert" parameterType="com.ljw.entity.po.EyeImages">
+		<selectKey keyProperty="bean.id" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO eye_images
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.url != null">
+				url,
+			</if>
+			<if test="bean.dignosisReportId != null">
+				dignosis_report_id,
+			</if>
+			<if test="bean.eyePosition != null">
+				eye_position,
+			</if>
+			<if test="bean.dicomData != null">
+				dicom_data,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.url != null">
+				#{bean.url},
+			</if>
+			<if test="bean.dignosisReportId != null">
+				#{bean.dignosisReportId},
+			</if>
+			<if test="bean.eyePosition != null">
+				#{bean.eyePosition},
+			</if>
+			<if test="bean.dicomData != null">
+				#{bean.dicomData},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 插入或者更新（匹配有值的字段） -->
+	<insert id="insertOrUpdate" parameterType="com.ljw.entity.po.EyeImages">
+		INSERT INTO eye_images
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.url != null">
+				url,
+			</if>
+			<if test="bean.dignosisReportId != null">
+				dignosis_report_id,
+			</if>
+			<if test="bean.eyePosition != null">
+				eye_position,
+			</if>
+			<if test="bean.dicomData != null">
+				dicom_data,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.url != null">
+				#{bean.url},
+			</if>
+			<if test="bean.dignosisReportId != null">
+				#{bean.dignosisReportId},
+			</if>
+			<if test="bean.eyePosition != null">
+				#{bean.eyePosition},
+			</if>
+			<if test="bean.dicomData != null">
+				#{bean.dicomData},
+			</if>
+		</trim>
+		ON DUPLICATE KEY UPDATE
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.url != null">
+				url = VALUES(url),
+			</if>
+			<if test="bean.dignosisReportId != null">
+				dignosis_report_id = VALUES(dignosis_report_id),
+			</if>
+			<if test="bean.eyePosition != null">
+				eye_position = VALUES(eye_position),
+			</if>
+			<if test="bean.dicomData != null">
+				dicom_data = VALUES(dicom_data),
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 添加（批量添加） -->
+	<insert id="insertBatch" parameterType="com.ljw.entity.po.EyeImages" >
+		INSERT INTO eye_images(url, dignosis_report_id, eye_position, dicom_data) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.url}, #{item.dignosisReportId}, #{item.eyePosition}, #{item.dicomData})
+		</foreach>
+	</insert>
+
+	<!-- 批量新增修改（批量插入） -->
+	<insert id="insertOrUpdateBatch" parameterType="com.ljw.entity.po.EyeImages" >
+		INSERT INTO eye_images(url, dignosis_report_id, eye_position, dicom_data) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.url}, #{item.dignosisReportId}, #{item.eyePosition}, #{item.dicomData})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		id =  VALUES(id),
+		url =  VALUES(url),
+		dignosis_report_id =  VALUES(dignosis_report_id),
+		eye_position =  VALUES(eye_position),
+		dicom_data =  VALUES(dicom_data)
+	</insert>
+
+	<!-- 根据 Id 查询 -->
+	<select id="selectById" resultMap="base_result_map">
+		select
+		<include refid="base_column_list"/> 
+		from eye_images where id =#{id}
+	</select>
+
+    <select id="selectCountByEyePosition" resultType="com.ljw.entity.vo.EyeImagesPositionVO">
+		SELECT
+		    eye_position as eyePosition,
+		    count(*) as count
+		FROM eye_images
+		GROUP BY eye_position;
+	</select>
+    <select id="selectByDiagnosisById" resultMap="base_result_map">
+		SELECT
+		<include refid="base_column_list"/>
+		FROM eye_images
+		WHERE dignosis_report_id = #{diagnosisReportId};
+	</select>
+
+    <!-- 根据 Id 更新 -->
+	<update id="updateById" parameterType="com.ljw.entity.po.EyeImages">
+		update eye_images
+		<set>
+			<if test="bean.id != null">
+				id= #{bean.id},
+			</if>
+			<if test="bean.url != null">
+				url= #{bean.url},
+			</if>
+			<if test="bean.dignosisReportId != null">
+				dignosis_report_id= #{bean.dignosisReportId},
+			</if>
+			<if test="bean.eyePosition != null">
+				eye_position= #{bean.eyePosition},
+			</if>
+			<if test="bean.dicomData != null">
+				dicom_data= #{bean.dicomData},
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+
+	<!-- 根据 Id 删除 -->
+	<delete id="deleteById">
+		delete from eye_images where id =#{id}
+	</delete>
+
+</mapper>

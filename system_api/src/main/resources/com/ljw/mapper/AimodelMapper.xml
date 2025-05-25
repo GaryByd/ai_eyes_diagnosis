@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ljw.mapper.AimodelMapper">
+	<!-- 实体映射-->
+	<resultMap id="base_result_map" type="com.ljw.entity.po.Aimodel">
+		<!--主键-->
+		<id column="id" property="id"/>
+		<!--模型版本-->
+		<result column="version" property="version"/>
+		<!--部署时间-->
+		<result column="deploy_time" property="deployTime"/>
+		<!--准确率-->
+		<result column="accuracy" property="accuracy"/>
+	</resultMap>
+
+	<!-- 通用查询结果列 -->
+	<sql id="base_column_list">
+		id,version,deploy_time,accuracy
+	</sql>
+
+	<!-- 基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test=" query.id != null">
+			and id= #{query.id}
+		</if>
+		<if test=" query.version != null and query.version!= ''">
+			and version= #{query.version}
+		</if>
+		<if test=" query.deployTime != null">
+			and deploy_time= #{query.deployTime}
+		</if>
+		<if test=" query.accuracy != null and query.accuracy!= ''">
+			and accuracy= #{query.accuracy}
+		</if>
+	</sql>
+
+	<!-- 扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+		<if test=" query.versionFuzzy != null and query.versionFuzzy!= null ">
+			and version like concat('%', #{query.versionFuzzy}, '%')
+		</if>
+		<if test=" query.deployTimeStart != null and query.deployTimeStart!= null ">
+			<![CDATA[ and deploy_time >= str_to_date(#{query.deployTimeStart}, '%Y-%m-%d') ]]>
+		</if>
+		<if test=" query.deployTimeEnd != null and query.deployTimeEnd!= null ">
+			<![CDATA[ and deploy_time < date_sub(str_to_date(#{query.deployTimeEnd}, '%Y-%m-%d'), interval -1 day) ]]>
+		</if>
+		<if test=" query.accuracyFuzzy != null and query.accuracyFuzzy!= null ">
+			and accuracy like concat('%', #{query.accuracyFuzzy}, '%')
+		</if>
+	</sql>
+
+	<!-- 通用查询条件 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+
+	<!-- 查询列表 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT 
+		<include refid="base_column_list"/>
+			FROM ai_model
+		<include refid="query_condition"/>
+		<if test="query.orderBy != null">
+			order by ${query.orderBy}
+		</if>
+		<if test="query.simplePage != null">
+			limit ${query.simplePage.start}, ${query.simplePage.end}
+		</if>
+	</select>
+
+	<!-- 查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM ai_model
+		<include refid="query_condition"/>
+	</select>
+
+	<!-- 单条插入 (匹配有值的字段) -->
+	<insert id="insert" parameterType="com.ljw.entity.po.Aimodel">
+		<selectKey keyProperty="bean.id" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO ai_model
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.version != null">
+				version,
+			</if>
+			<if test="bean.deployTime != null">
+				deploy_time,
+			</if>
+			<if test="bean.accuracy != null">
+				accuracy,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.version != null">
+				#{bean.version},
+			</if>
+			<if test="bean.deployTime != null">
+				#{bean.deployTime},
+			</if>
+			<if test="bean.accuracy != null">
+				#{bean.accuracy},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 插入或者更新（匹配有值的字段） -->
+	<insert id="insertOrUpdate" parameterType="com.ljw.entity.po.Aimodel">
+		INSERT INTO ai_model
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.version != null">
+				version,
+			</if>
+			<if test="bean.deployTime != null">
+				deploy_time,
+			</if>
+			<if test="bean.accuracy != null">
+				accuracy,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.version != null">
+				#{bean.version},
+			</if>
+			<if test="bean.deployTime != null">
+				#{bean.deployTime},
+			</if>
+			<if test="bean.accuracy != null">
+				#{bean.accuracy},
+			</if>
+		</trim>
+		ON DUPLICATE KEY UPDATE
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.version != null">
+				version = VALUES(version),
+			</if>
+			<if test="bean.deployTime != null">
+				deploy_time = VALUES(deploy_time),
+			</if>
+			<if test="bean.accuracy != null">
+				accuracy = VALUES(accuracy),
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 添加（批量添加） -->
+	<insert id="insertBatch" parameterType="com.ljw.entity.po.Aimodel" >
+		INSERT INTO ai_model(version, deploy_time, accuracy) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.version}, #{item.deployTime}, #{item.accuracy})
+		</foreach>
+	</insert>
+
+	<!-- 批量新增修改（批量插入） -->
+	<insert id="insertOrUpdateBatch" parameterType="com.ljw.entity.po.Aimodel" >
+		INSERT INTO ai_model(version, deploy_time, accuracy) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.version}, #{item.deployTime}, #{item.accuracy})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		id =  VALUES(id),
+		version =  VALUES(version),
+		deploy_time =  VALUES(deploy_time),
+		accuracy =  VALUES(accuracy)
+	</insert>
+
+	<!-- 根据 Id 查询 -->
+	<select id="selectById" resultMap="base_result_map">
+		select
+		<include refid="base_column_list"/> 
+		from ai_model where id =#{id}
+	</select>
+	<select id="selectMaxId" resultMap="base_result_map">
+		select
+		<include refid="base_column_list"/>
+		from ai_model ORDER BY id DESC LIMIT 1
+	</select>
+
+	<!-- 根据 Id 更新 -->
+	<update id="updateById" parameterType="com.ljw.entity.po.Aimodel">
+		update ai_model
+		<set>
+			<if test="bean.id != null">
+				id= #{bean.id},
+			</if>
+			<if test="bean.version != null">
+				version= #{bean.version},
+			</if>
+			<if test="bean.deployTime != null">
+				deploy_time= #{bean.deployTime},
+			</if>
+			<if test="bean.accuracy != null">
+				accuracy= #{bean.accuracy},
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+
+	<!-- 根据 Id 删除 -->
+	<delete id="deleteById">
+		delete from ai_model where id =#{id}
+	</delete>
+
+</mapper>

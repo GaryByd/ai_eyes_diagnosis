@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lzy.mapper.DataAnalysisMapper">
+	<!-- 实体映射-->
+	<resultMap id="base_result_map" type="com.lzy.entity.po.DataAnalysis">
+		<!--主键ID-->
+		<id column="id" property="id"/>
+		<!--统计数据-->
+		<result column="statistics" property="statistics"/>
+		<!--生成时间-->
+		<result column="generate_time" property="generateTime"/>
+	</resultMap>
+
+	<!-- 通用查询结果列 -->
+	<sql id="base_column_list">
+		id,statistics,generate_time
+	</sql>
+
+	<!-- 基础查询条件 -->
+	<sql id="base_query_condition">
+		<if test=" query.id != null">
+			and id= #{query.id}
+		</if>
+		<if test=" query.statistics != null and query.statistics!= ''">
+			and statistics= #{query.statistics}
+		</if>
+		<if test=" query.generateTime != null">
+			and generate_time= #{query.generateTime}
+		</if>
+	</sql>
+
+	<!-- 扩展查询条件 -->
+	<sql id="base_query_condition_extend">
+		<if test=" query.statisticsFuzzy != null and query.statisticsFuzzy!= null ">
+			and statistics like concat('%', #{query.statisticsFuzzy}, '%')
+		</if>
+		<if test=" query.generateTimeStart != null and query.generateTimeStart!= null ">
+			<![CDATA[ and generate_time >= str_to_date(#{query.generateTimeStart}, '%Y-%m-%d') ]]>
+		</if>
+		<if test=" query.generateTimeEnd != null and query.generateTimeEnd!= null ">
+			<![CDATA[ and generate_time < date_sub(str_to_date(#{query.generateTimeEnd}, '%Y-%m-%d'), interval -1 day) ]]>
+		</if>
+	</sql>
+
+	<!-- 通用查询条件 -->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition"/>
+			<include refid="base_query_condition_extend"/>
+		</where>
+	</sql>
+
+	<!-- 查询列表 -->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT 
+		<include refid="base_column_list"/>
+			FROM data_analysis
+		<include refid="query_condition"/>
+		<if test="query.orderBy != null">
+			order by ${query.orderBy}
+		</if>
+		<if test="query.simplePage != null">
+			limit ${query.simplePage.start}, ${query.simplePage.end}
+		</if>
+	</select>
+
+	<!-- 查询数量 -->
+	<select id="selectCount" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM data_analysis
+		<include refid="query_condition"/>
+	</select>
+
+	<!-- 单条插入 (匹配有值的字段) -->
+	<insert id="insert" parameterType="com.lzy.entity.po.DataAnalysis">
+		<selectKey keyProperty="bean.id" resultType="Integer" order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO data_analysis
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.statistics != null">
+				statistics,
+			</if>
+			<if test="bean.generateTime != null">
+				generate_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.statistics != null">
+				#{bean.statistics},
+			</if>
+			<if test="bean.generateTime != null">
+				#{bean.generateTime},
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 插入或者更新（匹配有值的字段） -->
+	<insert id="insertOrUpdate" parameterType="com.lzy.entity.po.DataAnalysis">
+		INSERT INTO data_analysis
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				id,
+			</if>
+			<if test="bean.statistics != null">
+				statistics,
+			</if>
+			<if test="bean.generateTime != null">
+				generate_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.id != null">
+				#{bean.id},
+			</if>
+			<if test="bean.statistics != null">
+				#{bean.statistics},
+			</if>
+			<if test="bean.generateTime != null">
+				#{bean.generateTime},
+			</if>
+		</trim>
+		ON DUPLICATE KEY UPDATE
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.statistics != null">
+				statistics = VALUES(statistics),
+			</if>
+			<if test="bean.generateTime != null">
+				generate_time = VALUES(generate_time),
+			</if>
+		</trim>
+	</insert>
+
+	<!-- 添加（批量添加） -->
+	<insert id="insertBatch" parameterType="com.lzy.entity.po.DataAnalysis" >
+		INSERT INTO data_analysis(statistics, generate_time) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.statistics}, #{item.generateTime})
+		</foreach>
+	</insert>
+
+	<!-- 批量新增修改（批量插入） -->
+	<insert id="insertOrUpdateBatch" parameterType="com.lzy.entity.po.DataAnalysis" >
+		INSERT INTO data_analysis(statistics, generate_time) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.statistics}, #{item.generateTime})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		id =  VALUES(id),
+		statistics =  VALUES(statistics),
+		generate_time =  VALUES(generate_time)
+	</insert>
+
+	<!-- 根据 Id 查询 -->
+	<select id="selectById" resultMap="base_result_map">
+		select
+		<include refid="base_column_list"/> 
+		from data_analysis where id =#{id}
+	</select>
+
+	<!-- 根据 Id 更新 -->
+	<update id="updateById" parameterType="com.lzy.entity.po.DataAnalysis">
+		update data_analysis
+		<set>
+			<if test="bean.id != null">
+				id= #{bean.id},
+			</if>
+			<if test="bean.statistics != null">
+				statistics= #{bean.statistics},
+			</if>
+			<if test="bean.generateTime != null">
+				generate_time= #{bean.generateTime},
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+
+	<!-- 根据 Id 删除 -->
+	<delete id="deleteById">
+		delete from data_analysis where id =#{id}
+	</delete>
+
+</mapper>

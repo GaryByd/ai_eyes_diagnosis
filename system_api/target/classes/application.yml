@@ -1,0 +1,53 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: ai-diagnosis-service
+  datasource:
+    url: jdbc:mysql://111.230.32.147:3306/ai_eyes_diagnosis?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 4+K/D2zvxHooBhn5begcMQz/04IpAMpq
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 81.71.3.20
+        port: 8848
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  redis:
+    database: 0
+    host: 111.230.32.147
+    #    host: localhost
+    port: 9631
+    password: 4+K/D2zvxHooBhn5begcMQz/04IpAMpq
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+minio:
+  endpoint: http://81.71.3.20:9000  # MinIO服务地址
+  accessKey: jXOV6LeCGBLHfidbb5gm     # MinIO控制台创建的Access Key
+  secretKey: yIzVHHy6DXkifPernKoJcHLJ21ybmMy1W9PvLWVM      # MinIO控制台创建的Secret Key
+  bucket: my-bucket               # 默认操作的存储桶名称
+  secure: false                   # 是否启用HTTPS（根据实际情况调整）
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 600000
+        readTimeout: 600000
+        loggerLevel: full
+      ai-doctor-service:
+        connectTimeout: 600000
+        readTimeout: 600000
+      doctor-analyze-service:
+        connectTimeout: 600000
+        readTimeout: 600000
+  okhttp:
+    enabled: true
+logging:
+  level:
+    com.lzy.mapper: debug
+    com.lzy.controller: debug

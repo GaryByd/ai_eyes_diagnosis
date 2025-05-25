@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ljw.mapper.DoctorMapper">
+    <!-- 实体映射-->
+    <resultMap id="base_result_map" type="com.ljw.entity.po.Doctor">
+        <!--主键ID-->
+        <id column="id" property="id"/>
+        <!--电话号码-->
+        <result column="phone" property="phone"/>
+        <!--身份证号-->
+        <result column="id_card" property="idCard"/>
+        <!--姓名-->
+        <result column="name" property="name"/>
+        <!--是否实名认证(0:否,1:是)-->
+        <result column="verified" property="verified"/>
+        <!--审核人-->
+        <result column="verified_by" property="verifiedBy"/>
+        <!--审核时间-->
+        <result column="verified_time" property="verifiedTime"/>
+        <!--执业编号-->
+        <result column="license" property="license"/>
+        <!--科室-->
+        <result column="department" property="department"/>
+        <!--医院医生编号-->
+        <result column="hospital_pid" property="hospitalPid"/>
+        <result column="expertise" property="expertise"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="base_column_list">
+        id
+        ,phone,id_card,name,verified,verified_by,verified_time,license,department,hospital_pid,expertise
+    </sql>
+
+    <!-- 基础查询条件 -->
+    <sql id="base_query_condition">
+        <if test=" query.id != null">
+            and id= #{query.id}
+        </if>
+        <if test=" query.phone != null and query.phone!= ''">
+            and phone= #{query.phone}
+        </if>
+        <if test=" query.idCard != null and query.idCard!= ''">
+            and id_card= #{query.idCard}
+        </if>
+        <if test=" query.name != null and query.name!= ''">
+            and name= #{query.name}
+        </if>
+        <if test=" query.verified != null">
+            and verified= #{query.verified}
+        </if>
+        <if test=" query.verifiedBy != null and query.verifiedBy!= ''">
+            and verified_by= #{query.verifiedBy}
+        </if>
+        <if test=" query.verifiedTime != null">
+            and verified_time= #{query.verifiedTime}
+        </if>
+        <if test=" query.license != null and query.license!= ''">
+            and license= #{query.license}
+        </if>
+        <if test=" query.department != null and query.department!= ''">
+            and department= #{query.department}
+        </if>
+        <if test=" query.hospitalPid != null and query.hospitalPid!= ''">
+            and hospital_pid= #{query.hospitalPid}
+        </if>
+    </sql>
+
+    <!-- 扩展查询条件 -->
+    <sql id="base_query_condition_extend">
+        <if test=" query.phoneFuzzy != null and query.phoneFuzzy!= null ">
+            and phone like concat('%', #{query.phoneFuzzy}, '%')
+        </if>
+        <if test=" query.idCardFuzzy != null and query.idCardFuzzy!= null ">
+            and id_card like concat('%', #{query.idCardFuzzy}, '%')
+        </if>
+        <if test=" query.nameFuzzy != null and query.nameFuzzy!= null ">
+            and name like concat('%', #{query.nameFuzzy}, '%')
+        </if>
+        <if test=" query.verifiedByFuzzy != null and query.verifiedByFuzzy!= null ">
+            and verified_by like concat('%', #{query.verifiedByFuzzy}, '%')
+        </if>
+        <if test=" query.verifiedTimeStart != null and query.verifiedTimeStart!= null ">
+            <![CDATA[ and verified_time >= str_to_date(#{query.verifiedTimeStart}, '%Y-%m-%d') ]]>
+        </if>
+        <if test=" query.verifiedTimeEnd != null and query.verifiedTimeEnd!= null ">
+            <![CDATA[ and verified_time < date_sub(str_to_date(#{query.verifiedTimeEnd}, '%Y-%m-%d'), interval -1 day) ]]>
+        </if>
+        <if test=" query.licenseFuzzy != null and query.licenseFuzzy!= null ">
+            and license like concat('%', #{query.licenseFuzzy}, '%')
+        </if>
+        <if test=" query.departmentFuzzy != null and query.departmentFuzzy!= null ">
+            and department like concat('%', #{query.departmentFuzzy}, '%')
+        </if>
+        <if test=" query.hospitalPidFuzzy != null and query.hospitalPidFuzzy!= null ">
+            and hospital_pid like concat('%', #{query.hospitalPidFuzzy}, '%')
+        </if>
+    </sql>
+
+    <!-- 通用查询条件 -->
+    <sql id="query_condition">
+        <where>
+            <include refid="base_query_condition"/>
+            <include refid="base_query_condition_extend"/>
+        </where>
+    </sql>
+
+    <!-- 查询列表 -->
+    <select id="selectList" resultMap="base_result_map">
+        SELECT
+        <include refid="base_column_list"/>
+        FROM doctor
+        <include refid="query_condition"/>
+        <if test="query.orderBy != null">
+            order by ${query.orderBy}
+        </if>
+        <if test="query.simplePage != null">
+            limit ${query.simplePage.start}, ${query.simplePage.end}
+        </if>
+    </select>
+
+    <!-- 查询数量 -->
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM doctor
+        <include refid="query_condition"/>
+    </select>
+
+    <!-- 单条插入 (匹配有值的字段) -->
+    <insert id="insert" parameterType="com.ljw.entity.po.Doctor">
+        <selectKey keyProperty="bean.id" resultType="Integer" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO doctor
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.phone != null">phone,</if>
+            <if test="bean.idCard != null">id_card,</if>
+            <if test="bean.name != null">name,</if>
+            <if test="bean.verified != null">verified,</if>
+            <if test="bean.verifiedBy != null">verified_by,</if>
+            <if test="bean.verifiedTime != null">verified_time,</if>
+            <if test="bean.license != null">license,</if>
+            <if test="bean.department != null">department,</if>
+            <if test="bean.hospitalPid != null">hospital_pid,</if>
+            <if test="bean.expertise != null">expertise,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="bean.phone != null">#{bean.phone},</if>
+            <if test="bean.idCard != null">#{bean.idCard},</if>
+            <if test="bean.name != null">#{bean.name},</if>
+            <if test="bean.verified != null">#{bean.verified},</if>
+            <if test="bean.verifiedBy != null">#{bean.verifiedBy},</if>
+            <if test="bean.verifiedTime != null">#{bean.verifiedTime},</if>
+            <if test="bean.license != null">#{bean.license},</if>
+            <if test="bean.department != null">#{bean.department},</if>
+            <if test="bean.hospitalPid != null">#{bean.hospitalPid},</if>
+            <if test="bean.expertise != null">#{bean.expertise},</if>
+        </trim>
+    </insert>
+
+    <!-- 插入或者更新（匹配有值的字段） -->
+    <insert id="insertOrUpdate" parameterType="com.ljw.entity.po.Doctor">
+        INSERT INTO doctor
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">
+                id,
+            </if>
+            <if test="bean.phone != null">
+                phone,
+            </if>
+            <if test="bean.idCard != null">
+                id_card,
+            </if>
+            <if test="bean.name != null">
+                name,
+            </if>
+            <if test="bean.verified != null">
+                verified,
+            </if>
+            <if test="bean.verifiedBy != null">
+                verified_by,
+            </if>
+            <if test="bean.verifiedTime != null">
+                verified_time,
+            </if>
+            <if test="bean.license != null">
+                license,
+            </if>
+            <if test="bean.department != null">
+                department,
+            </if>
+            <if test="bean.hospitalPid != null">
+                hospital_pid,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bean.id != null">
+                #{bean.id},
+            </if>
+            <if test="bean.phone != null">
+                #{bean.phone},
+            </if>
+            <if test="bean.idCard != null">
+                #{bean.idCard},
+            </if>
+            <if test="bean.name != null">
+                #{bean.name},
+            </if>
+            <if test="bean.verified != null">
+                #{bean.verified},
+            </if>
+            <if test="bean.verifiedBy != null">
+                #{bean.verifiedBy},
+            </if>
+            <if test="bean.verifiedTime != null">
+                #{bean.verifiedTime},
+            </if>
+            <if test="bean.license != null">
+                #{bean.license},
+            </if>
+            <if test="bean.department != null">
+                #{bean.department},
+            </if>
+            <if test="bean.hospitalPid != null">
+                #{bean.hospitalPid},
+            </if>
+        </trim>
+        ON DUPLICATE KEY UPDATE
+        <trim prefix="" suffix="" suffixOverrides=",">
+            <if test="bean.idCard != null">
+                id_card = VALUES(id_card),
+            </if>
+            <if test="bean.name != null">
+                name = VALUES(name),
+            </if>
+            <if test="bean.verified != null">
+                verified = VALUES(verified),
+            </if>
+            <if test="bean.verifiedBy != null">
+                verified_by = VALUES(verified_by),
+            </if>
+            <if test="bean.verifiedTime != null">
+                verified_time = VALUES(verified_time),
+            </if>
+            <if test="bean.license != null">
+                license = VALUES(license),
+            </if>
+            <if test="bean.department != null">
+                department = VALUES(department),
+            </if>
+            <if test="bean.hospitalPid != null">
+                hospital_pid = VALUES(hospital_pid),
+            </if>
+        </trim>
+    </insert>
+
+	<!-- 添加（批量添加） -->
+	<insert id="insertBatch" parameterType="com.ljw.entity.po.Doctor" >
+		INSERT INTO doctor(phone, id_card, name, verified, verified_by, verified_time, license, department, hospital_pid) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.phone}, #{item.idCard}, #{item.name}, #{item.verified}, #{item.verifiedBy}, #{item.verifiedTime}, #{item.license}, #{item.department}, #{item.hospitalPid})
+		</foreach>
+	</insert>
+
+	<!-- 批量新增修改（批量插入） -->
+	<insert id="insertOrUpdateBatch" parameterType="com.ljw.entity.po.Doctor" >
+		INSERT INTO doctor(phone, id_card, name, verified, verified_by, verified_time, license, department, hospital_pid) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.phone}, #{item.idCard}, #{item.name}, #{item.verified}, #{item.verifiedBy}, #{item.verifiedTime}, #{item.license}, #{item.department}, #{item.hospitalPid})
+		</foreach>
+		ON DUPLICATE KEY UPDATE
+		id =  VALUES(id),
+		phone =  VALUES(phone),
+		id_card =  VALUES(id_card),
+		name =  VALUES(name),
+		verified =  VALUES(verified),
+		verified_by =  VALUES(verified_by),
+		verified_time =  VALUES(verified_time),
+		license =  VALUES(license),
+		department =  VALUES(department),
+		hospital_pid =  VALUES(hospital_pid),
+        expertise =  VALUES(expertise)
+	</insert>
+
+    <!-- 根据 Id 查询 -->
+    <select id="selectById" resultMap="base_result_map">
+        select
+        <include refid="base_column_list"/>
+        from doctor where id =#{id}
+    </select>
+
+    <!-- 根据 Id 更新 -->
+    <update id="updateById" parameterType="com.ljw.entity.po.Doctor">
+        update doctor
+        <set>
+            <if test="bean.id != null">
+                id= #{bean.id},
+            </if>
+            <if test="bean.phone != null">
+                phone= #{bean.phone},
+            </if>
+            <if test="bean.idCard != null">
+                id_card= #{bean.idCard},
+            </if>
+            <if test="bean.name != null">
+                name= #{bean.name},
+            </if>
+            <if test="bean.verified != null">
+                verified= #{bean.verified},
+            </if>
+            <if test="bean.verifiedBy != null">
+                verified_by= #{bean.verifiedBy},
+            </if>
+            <if test="bean.verifiedTime != null">
+                verified_time= #{bean.verifiedTime},
+            </if>
+            <if test="bean.license != null">
+                license= #{bean.license},
+            </if>
+            <if test="bean.department != null">
+                department= #{bean.department},
+            </if>
+            <if test="bean.hospitalPid != null">
+                hospital_pid= #{bean.hospitalPid},
+            </if>
+        </set>
+        where id =#{id}
+    </update>
+
+	<!-- 根据 Id 删除 -->
+	<delete id="deleteById">
+		delete from doctor where id =#{id}
+	</delete>
+
+    <!-- 根据 Phone 查询 -->
+    <select id="selectByPhone" resultMap="base_result_map">
+        select
+        <include refid="base_column_list"/>
+        from doctor where phone =#{phone}
+    </select>
+
+    <!-- 根据 Phone 更新 -->
+    <update id="updateByPhone" parameterType="com.ljw.entity.po.Doctor">
+        update doctor
+        <set>
+            <if test="bean.id != null">
+                id= #{bean.id},
+            </if>
+            <if test="bean.phone != null">
+                phone= #{bean.phone},
+            </if>
+            <if test="bean.idCard != null">
+                id_card= #{bean.idCard},
+            </if>
+            <if test="bean.name != null">
+                name= #{bean.name},
+            </if>
+            <if test="bean.verified != null">
+                verified= #{bean.verified},
+            </if>
+            <if test="bean.verifiedBy != null">
+                verified_by= #{bean.verifiedBy},
+            </if>
+            <if test="bean.verifiedTime != null">
+                verified_time= #{bean.verifiedTime},
+            </if>
+            <if test="bean.license != null">
+                license= #{bean.license},
+            </if>
+            <if test="bean.department != null">
+                department= #{bean.department},
+            </if>
+            <if test="bean.hospitalPid != null">
+                hospital_pid= #{bean.hospitalPid},
+            </if>
+        </set>
+        where phone =#{phone}
+    </update>
+
+	<!-- 根据 Phone 删除 -->
+	<delete id="deleteByPhone">
+		delete from doctor where phone =#{phone}
+	</delete>
+
+</mapper>
